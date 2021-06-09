@@ -1,0 +1,135 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+}
+
+model User {
+  id Int @default(autoincrement()) @id
+  firstName String @db.VarChar(255)
+  lastName String @db.VarChar(255)
+  role Role @default(MEMBER)
+  email String @db.VarChar(50) @unique
+  passwordHash String @db.VarChar(64)  
+  profile Profile? 
+  picture ProfilePicture[]  
+  posts Post[]
+  images Images[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {  
+  id Int @default(autoincrement()) @id
+  bio String?
+  user User @relation(fields: [userId], references: [id])
+  userId Int @unique
+}
+
+model ProfilePicture {
+  id Int @default(autoincrement()) @id
+  originalname String @db.VarChar(100)
+  filename String @db.VarChar(100)
+  url String @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id])
+  userId Int @unique
+}
+
+model Post {
+  id Int @default(autoincrement()) @id
+  title String @db.VarChar(100)
+  metaTitle String @db.VarChar(140)
+  postMeta PostMeta[]
+  comments PostComment[]
+  tag PostTag[]
+  category PostCategory[]  
+  content String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean @default(false)
+  author User @relation(fields: [authorId], references: [id])
+  authorId Int
+}
+
+
+model Images {
+  id Int @default(autoincrement()) @id
+  title String @db.VarChar(100)
+  description String @db.VarChar(255)
+  originalname String @db.VarChar(100)
+  filename String @db.VarChar(100)
+  url String @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId User[]
+}
+
+model PostMeta {
+  id Int @default(autoincrement()) @id
+  key String @db.VarChar(50)
+  content String
+  post Post @relation(fields: [postId], references: [id])
+  postId Int
+}
+
+model PostComment {
+  id Int @default(autoincrement()) @id  
+  content String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean @default(false)
+  post Post @relation(fields: [postId], references: [id])
+  postId Int
+}
+
+model Tag {
+  id Int @default(autoincrement()) @id
+  title String @db.VarChar(75)
+  metaTitle String @db.VarChar(100)
+  slug String @db.VarChar(100)
+  content String
+  postTag PostTag[]
+}
+
+model PostTag {
+  post Post @relation(fields: [postId], references: [id])
+  postId Int
+  tag Tag @relation(fields: [tagId], references: [id])
+  tagId Int
+
+  @@id([postId, tagId])
+}
+
+model Category {
+  id Int @default(autoincrement()) @id
+  title String @db.VarChar(75)
+  metaTitle String @db.VarChar(100)
+  slug String @db.VarChar(100)
+  content String
+  postCategory PostCategory[]
+}
+
+model PostCategory {
+  post Post @relation(fields: [postId], references: [id])
+  postId Int
+  category Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  @@id([postId, categoryId])
+}
+
+
+
