@@ -11,6 +11,14 @@ const routes = {
           metaTitle: req.body.metaTitle,
           content: req.body.content,
           authorId: req.userId,
+          featuredImage: req.body.image,
+          description: req.body.description,
+          postMeta: {
+            create: {
+              key: "excerpt",
+              content: req.body.excerpt,
+            },
+          },
         },
       });
 
@@ -33,8 +41,12 @@ const routes = {
             },
           ],
         },
+        include: {
+          postMeta: true,
+        },
         orderBy: { createdAt: "desc" },
       });
+
       return res.json(posts);
     } catch (error) {
       return res.status(400).json({ errors: ["Bad Request"] });
@@ -42,7 +54,7 @@ const routes = {
   },
   update: async (req, res) => {
     try {
-      if (!req.params.id) throw new Error("Must send the post id");
+      if (!req.params.id) throw new Error("Id Must be sent.");
       const user = await prisma.user.findFirst({
         where: { id: Number(req.userId) },
         select: { role: true },
@@ -51,6 +63,10 @@ const routes = {
       const findPost = await prisma.post.findFirst({
         where: { id: Number(req.params.id) },
       });
+
+      if (!findPost) {
+        return res.status(404).json({ errors: ["Post do not exists."] });
+      }
 
       if (user.role !== "ADMIN" && findPost.authorId !== req.userId) {
         return res.status(403).json({ errors: ["Access Forbidden"] });
@@ -64,6 +80,38 @@ const routes = {
           content: req.body.content,
           published: req.body.published,
         },
+      });
+      return res.json(post);
+    } catch (error) {
+      return res.status(400).json({ errors: [error.message] });
+    }
+  },
+
+  delete: async (req, res) => {
+    try {
+      if (!req.params.id) throw new Error("Id Must be sent.");
+      const user = await prisma.user.findFirst({
+        where: { id: Number(req.userId) },
+        select: { role: true },
+      });
+
+      const findPost = await prisma.post.findFirst({
+        where: { id: Number(req.params.id) },
+      });
+
+      if (!findPost) {
+        return res.status(404).json({ errors: ["Post do not exists."] });
+      }
+
+      if (user.role !== "ADMIN" && findPost.authorId !== req.userId) {
+        return res.status(403).json({ errors: ["Access Forbidden"] });
+      }
+
+      await prisma.postMeta.deleteMany({
+        where: { postId: Number(req.params.id) },
+      });
+      const post = await prisma.post.delete({
+        where: { id: Number(req.params.id) },
       });
       return res.json(post);
     } catch (error) {
