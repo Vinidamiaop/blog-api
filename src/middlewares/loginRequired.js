@@ -24,6 +24,7 @@ export default async (req, res, next) => {
 
     req.userId = id;
     req.userEmail = email;
+    req.userRole = user.role;
     return next();
   } catch (error) {
     return res.status(401).json({ errors: ["Invalid Token"] });

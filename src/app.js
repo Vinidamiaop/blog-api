@@ -6,6 +6,7 @@ import tokenRoutes from "./routes/tokenRoutes";
 import profileRoutes from "./routes/profileRoutes";
 import profilePictureRoutes from "./routes/profilePictureRoutes";
 import postRoutes from "./routes/postRoutes";
+import imagesRoutes from "./routes/imagesRoutes";
 
 const app = express();
 
@@ -18,5 +19,6 @@ app.use("/user/profile", profileRoutes);
 app.use("/user/profile-picture", profilePictureRoutes);
 app.use("/token", tokenRoutes);
 app.use("/posts", postRoutes);
+app.use("/images", imagesRoutes);
 
 export default app;

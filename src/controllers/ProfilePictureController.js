@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import multer from "multer";
+import { unlink } from "fs/promises";
+import path from "path";
 import multerConfig from "../config/multerConfig";
 
 const upload = multer(multerConfig).single("picture");
@@ -56,9 +58,20 @@ const routes = {
         where: { userId: req.userId },
       });
 
+      await unlink(
+        path.resolve(
+          __dirname,
+          "..",
+          "..",
+          "uploads",
+          "images",
+          picture.filename
+        )
+      );
+
       return res.json(picture);
     } catch (error) {
-      return res.json({ errors: [...error.message] });
+      return res.json({ errors: ["Something went wrong"] });
     }
   },
 };

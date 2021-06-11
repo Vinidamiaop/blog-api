@@ -55,10 +55,6 @@ const routes = {
   update: async (req, res) => {
     try {
       if (!req.params.id) throw new Error("Id Must be sent.");
-      const user = await prisma.user.findFirst({
-        where: { id: Number(req.userId) },
-        select: { role: true },
-      });
 
       const findPost = await prisma.post.findFirst({
         where: { id: Number(req.params.id) },
@@ -68,7 +64,7 @@ const routes = {
         return res.status(404).json({ errors: ["Post do not exists."] });
       }
 
-      if (user.role !== "ADMIN" && findPost.authorId !== req.userId) {
+      if (req.userRole !== "ADMIN" && findPost.authorId !== req.userId) {
         return res.status(403).json({ errors: ["Access Forbidden"] });
       }
 
@@ -90,10 +86,6 @@ const routes = {
   delete: async (req, res) => {
     try {
       if (!req.params.id) throw new Error("Id Must be sent.");
-      const user = await prisma.user.findFirst({
-        where: { id: Number(req.userId) },
-        select: { role: true },
-      });
 
       const findPost = await prisma.post.findFirst({
         where: { id: Number(req.params.id) },
@@ -103,7 +95,7 @@ const routes = {
         return res.status(404).json({ errors: ["Post do not exists."] });
       }
 
-      if (user.role !== "ADMIN" && findPost.authorId !== req.userId) {
+      if (req.userRole !== "ADMIN" && findPost.authorId !== req.userId) {
         return res.status(403).json({ errors: ["Access Forbidden"] });
       }
 

@@ -37,12 +37,7 @@ const routes = {
   },
   index: async (req, res) => {
     try {
-      const admin = await prisma.user.findFirst({
-        where: { id: req.userId },
-        select: { role: true },
-      });
-
-      if (admin.role !== "ADMIN") {
+      if (req.userRole !== "ADMIN") {
         return res.status(403).json({ error: ["Access Forbidden"] });
       }
 
@@ -62,13 +57,7 @@ const routes = {
   },
   update: async (req, res) => {
     try {
-      const admin = await prisma.user.findFirst({
-        where: {
-          id: Number(req.userId),
-        },
-      });
-
-      if (admin.role !== "ADMIN") {
+      if (req.userRole !== "ADMIN") {
         if (req.body.role) {
           req.body.role = "";
         }
@@ -102,6 +91,14 @@ const routes = {
         include: {
           profile: true,
           picture: true,
+          images: {
+            select: {
+              title: true,
+              filename: true,
+              url: true,
+            },
+            orderBy: { createdAt: "desc" },
+          },
           posts: {
             select: {
               title: true,
@@ -122,8 +119,17 @@ const routes = {
         },
       });
 
-      const { id, firstName, lastName, email, role, posts, profile, picture } =
-        user;
+      const {
+        id,
+        firstName,
+        lastName,
+        email,
+        role,
+        images,
+        posts,
+        profile,
+        picture,
+      } = user;
 
       return res.json({
         id,
@@ -132,6 +138,7 @@ const routes = {
         email,
         role,
         profile,
+        images,
         picture,
         posts,
       });
