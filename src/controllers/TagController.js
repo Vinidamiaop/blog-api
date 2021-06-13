@@ -63,7 +63,9 @@ const routes = {
         data: {
           title: req.body.title,
           metaTitle: req.body.metaTitle,
-          slug: req.body.slug || req.body.title.toLowerCase(),
+          slug:
+            req.body.slug ||
+            req.body.title?.toLowerCase().trim().replace(/\s/g, "-"),
           content: req.body.content,
         },
       });

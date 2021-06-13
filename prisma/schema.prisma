@@ -51,10 +51,11 @@ model ProfilePicture {
 
 model Post {
   id Int @default(autoincrement()) @id
-  title String @db.VarChar(100)
-  metaTitle String @db.VarChar(140)
-  description String @db.VarChar(255)
-  featuredImage String @db.VarChar(100)
+  title String @db.VarChar(100) @unique
+  metaTitle String? @db.VarChar(140)
+  slug String @db.VarChar(100) @unique
+  description String? @db.VarChar(255)
+  featuredImage String? @db.VarChar(100)
   postMeta PostMeta[]
   comments PostComment[]
   tag PostTag[]
@@ -85,7 +86,7 @@ model PostMeta {
   id Int @default(autoincrement()) @id
   key String? @db.VarChar(50)
   content String?
-  post Post @relation(fields: [postId], references: [id])
+  post Post? @relation(fields: [postId], references: [id])
   postId Int
   
 }
@@ -104,10 +105,10 @@ model PostComment {
 
 model Tag {
   id Int @default(autoincrement()) @id
-  title String @db.VarChar(75)
-  metaTitle String @db.VarChar(100)
-  slug String @db.VarChar(100)
-  content String
+  title String @db.VarChar(75) @unique
+  metaTitle String? @db.VarChar(100)
+  slug String @db.VarChar(100) @unique
+  content String?
   postTag PostTag[]
 }
 
@@ -122,17 +123,17 @@ model PostTag {
 
 model Category {
   id Int @default(autoincrement()) @id
-  title String @db.VarChar(75)
-  metaTitle String @db.VarChar(100)
-  slug String @db.VarChar(100)
-  content String
+  title String @db.VarChar(75) @unique
+  metaTitle String? @db.VarChar(100)
+  slug String @db.VarChar(100) @unique
+  content String?
   postCategory PostCategory[]
 }
 
 model PostCategory {
-  post Post @relation(fields: [postId], references: [id])
+  post Post? @relation(fields: [postId], references: [id])
   postId Int
-  category Category @relation(fields: [categoryId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
   categoryId Int
 
   @@id([postId, categoryId])

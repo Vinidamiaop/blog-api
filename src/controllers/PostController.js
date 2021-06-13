@@ -8,6 +8,9 @@ const routes = {
       const post = await prisma.post.create({
         data: {
           title: req.body.title,
+          slug:
+            req.body.slug ||
+            req.body.title.toLowerCase().trim().replace(/\s/g, "-"),
           metaTitle: req.body.metaTitle,
           content: req.body.content,
           authorId: req.userId,
@@ -101,8 +104,8 @@ const routes = {
   },
   show: async (req, res) => {
     try {
-      const posts = await prisma.post.findFirst({
-        where: { id: Number(req.params.id) },
+      const posts = await prisma.post.findUnique({
+        where: { slug: req.params.slug },
         include: {
           postMeta: true,
           tag: {
@@ -119,12 +122,11 @@ const routes = {
             orderBy: { createdAt: "desc" },
           },
         },
-        orderBy: { createdAt: "desc" },
       });
 
       return res.json(posts);
     } catch (error) {
-      return res.status(400).json({ errors: ["Bad Request"] });
+      return res.status(400).json({ errors: [error.message] });
     }
   },
   update: async (req, res) => {
@@ -152,6 +154,40 @@ const routes = {
           published: req.body.published,
         },
       });
+
+      if (req.body.tag || req.body.tagTitle) {
+        const tag = await prisma.tag.findFirst({
+          where: { title: req.body.tagTitle },
+        });
+
+        if (!tag) {
+          const newTag = await prisma.tag.create({
+            data: {
+              title: req.body.tagTitle,
+              metaTitle: req.body.tagMetaTitle,
+              slug:
+                req.body.slug ||
+                req.body.tagTitle?.toLowerCase().trim().replace(/\s/g, "-"),
+              content: req.body.tagContent,
+            },
+          });
+
+          await prisma.postTag.create({
+            data: {
+              postId: Number(post.id),
+              tagId: Number(newTag.id),
+            },
+          });
+        } else {
+          await prisma.postTag.create({
+            data: {
+              postId: Number(post.id),
+              tagId: Number(tag.id) || Number(req.body.tag),
+            },
+          });
+        }
+      }
+
       return res.json(post);
     } catch (error) {
       return res.status(400).json({ errors: [error.message] });
