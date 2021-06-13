@@ -23,6 +23,39 @@ const routes = {
         },
       });
 
+      if (req.body.tag || req.body.tagTitle) {
+        const tag = await prisma.tag.findFirst({
+          where: { title: req.body.tagTitle },
+        });
+
+        if (!tag) {
+          const newTag = await prisma.tag.create({
+            data: {
+              title: req.body.tagTitle,
+              metaTitle: req.body.tagMetaTitle,
+              slug:
+                req.body.slug ||
+                req.body.tagTitle.toLowerCase().trim().replace(/\s/g, "-"),
+              content: req.body.tagContent,
+            },
+          });
+
+          await prisma.postTag.create({
+            data: {
+              postId: Number(post.id),
+              tagId: Number(newTag.id),
+            },
+          });
+        } else {
+          await prisma.postTag.create({
+            data: {
+              postId: Number(post.id),
+              tagId: Number(tag.id) || Number(req.body.tag),
+            },
+          });
+        }
+      }
+
       return res.json(post);
     } catch (error) {
       return res.status(400).json({ errors: [error.message] });
@@ -44,6 +77,37 @@ const routes = {
         },
         include: {
           postMeta: true,
+          tag: {
+            include: { tag: true },
+          },
+          comments: {
+            select: {
+              id: true,
+              content: true,
+              published: true,
+              updatedAt: true,
+              postId: true,
+            },
+            orderBy: { createdAt: "desc" },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      return res.json(posts);
+    } catch (error) {
+      return res.status(400).json({ errors: ["Bad Request"] });
+    }
+  },
+  show: async (req, res) => {
+    try {
+      const posts = await prisma.post.findFirst({
+        where: { id: Number(req.params.id) },
+        include: {
+          postMeta: true,
+          tag: {
+            include: { tag: true },
+          },
           comments: {
             select: {
               id: true,

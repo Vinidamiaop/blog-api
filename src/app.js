@@ -8,6 +8,7 @@ import profilePictureRoutes from "./routes/profilePictureRoutes";
 import postRoutes from "./routes/postRoutes";
 import imagesRoutes from "./routes/imagesRoutes";
 import postCommentsRoutes from "./routes/postCommentsRoutes";
+import tagRoutes from "./routes/tagRoutes";
 
 const app = express();
 
@@ -22,5 +23,6 @@ app.use("/token", tokenRoutes);
 app.use("/posts", postRoutes);
 app.use("/posts/comments", postCommentsRoutes);
 app.use("/images", imagesRoutes);
+app.use("/tags", tagRoutes);
 
 export default app;
