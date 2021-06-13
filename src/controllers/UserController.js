@@ -59,7 +59,7 @@ const routes = {
     try {
       if (req.userRole !== "ADMIN") {
         if (req.body.role) {
-          req.body.role = "";
+          return res.status(401).json({ errors: ["Unauthorized"] });
         }
       }
 
@@ -68,16 +68,19 @@ const routes = {
           id: Number(req.userId),
         },
         data: {
-          ...req.body,
+          firstName: req.body.firstName,
+          lastName: req.body.lastName,
+          email: req.body.email,
+          role: req.body.role,
         },
       });
 
-      const { firstName, lastName, email } = user;
+      const { firstName, lastName, email, role } = user;
 
-      return res.json({ firstName, lastName, email });
+      return res.json({ firstName, lastName, email, role });
     } catch (error) {
       return res.status(400).json({
-        error: ["Something went wrong. Please verify if the data is correct."],
+        error: [error],
       });
     }
   },
@@ -99,18 +102,28 @@ const routes = {
             },
             orderBy: { createdAt: "desc" },
           },
+          userComments: {
+            select: {
+              id: true,
+              content: true,
+              published: true,
+              updatedAt: true,
+              postId: true,
+            },
+            orderBy: { createdAt: "desc" },
+          },
           posts: {
             select: {
               title: true,
               metaTitle: true,
-              createdAt: true,
-              updatedAt: true,
               content: true,
-              published: true,
-              postMeta: true,
               comments: true,
+              postMeta: true,
+              published: true,
               tag: true,
               category: true,
+              createdAt: true,
+              updatedAt: true,
             },
             orderBy: {
               createdAt: "desc",
@@ -126,6 +139,7 @@ const routes = {
         email,
         role,
         images,
+        userComments,
         posts,
         profile,
         picture,
@@ -138,8 +152,9 @@ const routes = {
         email,
         role,
         profile,
-        images,
         picture,
+        images,
+        userComments,
         posts,
       });
     } catch (error) {

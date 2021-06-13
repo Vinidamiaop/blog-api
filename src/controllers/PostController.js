@@ -19,6 +19,7 @@ const routes = {
               content: req.body.excerpt,
             },
           },
+          published: req.body.published,
         },
       });
 
@@ -43,6 +44,16 @@ const routes = {
         },
         include: {
           postMeta: true,
+          comments: {
+            select: {
+              id: true,
+              content: true,
+              published: true,
+              updatedAt: true,
+              postId: true,
+            },
+            orderBy: { createdAt: "desc" },
+          },
         },
         orderBy: { createdAt: "desc" },
       });
