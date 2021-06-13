@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import tagCatCreator from "../helper/tagCatCreator";
 
 const prisma = new PrismaClient();
 
@@ -26,37 +27,28 @@ const routes = {
         },
       });
 
-      if (req.body.tag || req.body.tagTitle) {
-        const tag = await prisma.tag.findFirst({
-          where: { title: req.body.tagTitle },
+      if (req.body.tagId || req.body.tagTitle) {
+        // tagCatCreator is a helper to create a new tag or category
+        await tagCatCreator("tag", {
+          title: req.body.tagTitle,
+          metaTitle: req.body.tagMetaTitle,
+          slug: req.body.tagSlug,
+          content: req.body.tagContent,
+          typeId: req.body.tagId || null,
+          postId: post.id,
         });
+      }
 
-        if (!tag) {
-          const newTag = await prisma.tag.create({
-            data: {
-              title: req.body.tagTitle,
-              metaTitle: req.body.tagMetaTitle,
-              slug:
-                req.body.slug ||
-                req.body.tagTitle.toLowerCase().trim().replace(/\s/g, "-"),
-              content: req.body.tagContent,
-            },
-          });
-
-          await prisma.postTag.create({
-            data: {
-              postId: Number(post.id),
-              tagId: Number(newTag.id),
-            },
-          });
-        } else {
-          await prisma.postTag.create({
-            data: {
-              postId: Number(post.id),
-              tagId: Number(tag.id) || Number(req.body.tag),
-            },
-          });
-        }
+      if (req.body.categoryId || req.body.categoryTitle) {
+        // tagCatCreator is a helper to create a new tag or category
+        await tagCatCreator("category", {
+          title: req.body.categoryTitle,
+          metaTitle: req.body.categoryMetaTitle,
+          slug: req.body.categorySlug,
+          content: req.body.categoryContent,
+          typeId: req.body.categoryId || null,
+          postId: post.id,
+        });
       }
 
       return res.json(post);
@@ -80,8 +72,11 @@ const routes = {
         },
         include: {
           postMeta: true,
-          tag: {
+          postTags: {
             include: { tag: true },
+          },
+          postCategory: {
+            include: { category: true },
           },
           comments: {
             select: {
@@ -99,7 +94,7 @@ const routes = {
 
       return res.json(posts);
     } catch (error) {
-      return res.status(400).json({ errors: ["Bad Request"] });
+      return res.status(400).json({ errors: [error.message] });
     }
   },
   show: async (req, res) => {
@@ -108,8 +103,10 @@ const routes = {
         where: { slug: req.params.slug },
         include: {
           postMeta: true,
-          tag: {
-            include: { tag: true },
+          postTags: {
+            select: {
+              tag: true,
+            },
           },
           comments: {
             select: {
@@ -154,39 +151,6 @@ const routes = {
           published: req.body.published,
         },
       });
-
-      if (req.body.tag || req.body.tagTitle) {
-        const tag = await prisma.tag.findFirst({
-          where: { title: req.body.tagTitle },
-        });
-
-        if (!tag) {
-          const newTag = await prisma.tag.create({
-            data: {
-              title: req.body.tagTitle,
-              metaTitle: req.body.tagMetaTitle,
-              slug:
-                req.body.slug ||
-                req.body.tagTitle?.toLowerCase().trim().replace(/\s/g, "-"),
-              content: req.body.tagContent,
-            },
-          });
-
-          await prisma.postTag.create({
-            data: {
-              postId: Number(post.id),
-              tagId: Number(newTag.id),
-            },
-          });
-        } else {
-          await prisma.postTag.create({
-            data: {
-              postId: Number(post.id),
-              tagId: Number(tag.id) || Number(req.body.tag),
-            },
-          });
-        }
-      }
 
       return res.json(post);
     } catch (error) {

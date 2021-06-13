@@ -58,8 +58,8 @@ model Post {
   featuredImage String? @db.VarChar(100)
   postMeta PostMeta[]
   comments PostComment[]
-  tag PostTag[]
-  category PostCategory[]  
+  postTags PostTag[]
+  postCategory PostCategory[]  
   content String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

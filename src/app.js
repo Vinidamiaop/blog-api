@@ -9,6 +9,7 @@ import postRoutes from "./routes/postRoutes";
 import imagesRoutes from "./routes/imagesRoutes";
 import postCommentsRoutes from "./routes/postCommentsRoutes";
 import tagRoutes from "./routes/tagRoutes";
+import categoryRoutes from "./routes/categoryRoutes";
 
 const app = express();
 
@@ -24,5 +25,6 @@ app.use("/posts", postRoutes);
 app.use("/posts/comments", postCommentsRoutes);
 app.use("/images", imagesRoutes);
 app.use("/tags", tagRoutes);
+app.use("/categories", categoryRoutes);
 
 export default app;
