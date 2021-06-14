@@ -24,7 +24,7 @@ app.use("/user/profile", profileRoutes);
 app.use("/user/profile-picture", profilePictureRoutes);
 app.use("/token", tokenRoutes);
 app.use("/posts", postRoutes);
-app.use("/posts/comments", postCommentsRoutes);
+app.use("/posts-comments", postCommentsRoutes);
 app.use("/images", imagesRoutes);
 app.use("/tags", tagRoutes);
 app.use("/post-tag", postTagRoutes);
