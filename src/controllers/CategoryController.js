@@ -5,20 +5,35 @@ const prisma = new PrismaClient();
 const routes = {
   store: async (req, res) => {
     try {
+      if (!req.body.title) {
+        return res
+          .status(400)
+          .json({ errrors: ["Category title is required."] });
+      }
+
+      const findCateogory = await prisma.category.findUnique({
+        where: { title: req.body.title },
+      });
+      if (findCateogory) {
+        return res.status(400).json({ errors: ["Category already existis."] });
+      }
+
       const newCategory = await prisma.category.create({
         data: {
-          title: req.body.categoryTitle,
-          metaTitle: req.body.categoryMetaTitle,
+          title: req.body.title,
+          metaTitle: req.body.metaTitle,
           slug:
-            req.body.slug ||
-            req.body.categoryTitle?.toLowerCase().trim().replace(/\s/g, "-"),
-          content: req.body.categoryContent,
+            req.body.slug?.toLowerCase().trim().replace(/\s/g, "-") ||
+            req.body.title?.toLowerCase().trim().replace(/\s/g, "-"),
+          content: req.body.content,
         },
       });
 
       return res.json(newCategory);
     } catch (error) {
-      return res.status(400).json({ errors: [error.message] });
+      return res.status(400).json({
+        errors: ["Unexpected error has occurred. Please, try again."],
+      });
     }
   },
   index: async (req, res) => {
@@ -26,13 +41,23 @@ const routes = {
       const categories = await prisma.category.findMany();
       return res.json(categories);
     } catch (error) {
-      return res.status(400).json({ errors: [error.message] });
+      return res.status(500).json({
+        errors: ["Unexpected error has occurred. Please, try again."],
+      });
     }
   },
   update: async (req, res) => {
     try {
       if (!req.params.id) {
-        return res.status(403).json("Category Id must be sent");
+        return res.status(403).json("Category Id is required.");
+      }
+
+      const findCateogory = await prisma.category.findUnique({
+        where: { id: Number(req.params.id) },
+      });
+
+      if (!findCateogory) {
+        return res.status(404).json({ errors: ["Category not found."] });
       }
 
       const category = await prisma.category.update({
@@ -41,14 +66,16 @@ const routes = {
           title: req.body.categoryTitle,
           metaTitle: req.body.categoryMetaTitle,
           slug:
-            req.body.slug ||
+            req.body.slug?.toLowerCase().trim().replace(/\s/g, "-") ||
             req.body.categoryTitle?.toLowerCase().trim().replace(/\s/g, "-"),
           content: req.body.categoryContent,
         },
       });
       return res.json(category);
     } catch (error) {
-      return res.status(400).json({ errors: [error.message] });
+      return res.status(400).json({
+        errors: ["Unexpected error has occurred. Please, try again."],
+      });
     }
   },
   delete: async (req, res) => {
@@ -74,7 +101,9 @@ const routes = {
       });
       return res.json(category);
     } catch (error) {
-      return res.status(400).json({ errors: [error.message] });
+      return res.status(400).json({
+        errors: ["Unexpected error has occurred. Please, try again."],
+      });
     }
   },
 };
