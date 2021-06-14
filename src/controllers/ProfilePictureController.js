@@ -26,7 +26,9 @@ const routes = {
 
         return res.json(picture);
       } catch (err) {
-        return res.status(400).json({ errors: [err.message] });
+        return res.status(500).json({
+          errors: ["Unexpected error has occurred. Please, try again."],
+        });
       }
     });
   },
@@ -35,6 +37,16 @@ const routes = {
       try {
         if (error) {
           throw new Error(error.code);
+        }
+
+        const findPicture = await prisma.profilePicture.findUnique({
+          where: { userId: req.userId },
+        });
+
+        if (!findPicture) {
+          return res
+            .status(404)
+            .json({ errors: ["Profile Picture not found."] });
         }
 
         const picture = await prisma.profilePicture.update({
@@ -48,12 +60,22 @@ const routes = {
 
         return res.json(picture);
       } catch (err) {
-        return res.status(400).json({ errors: ["Something went wrong."] });
+        return res.status(500).json({
+          errors: ["Unexpected error has occurred. Please, try again."],
+        });
       }
     });
   },
   delete: async (req, res) => {
     try {
+      const findPicture = await prisma.profilePicture.findUnique({
+        where: { userId: req.userId },
+      });
+
+      if (!findPicture) {
+        return res.status(404).json({ errors: ["Profile Picture not found."] });
+      }
+
       const picture = await prisma.profilePicture.delete({
         where: { userId: req.userId },
       });
@@ -71,7 +93,11 @@ const routes = {
 
       return res.json(picture);
     } catch (error) {
-      return res.json({ errors: ["Something went wrong"] });
+      return res
+        .status(500)
+        .json({
+          errors: ["Unexpected error has occurred. Please, try again."],
+        });
     }
   },
 };
