@@ -5,7 +5,14 @@ const prisma = new PrismaClient();
 const routes = {
   store: async (req, res) => {
     try {
-      const { firstName, lastName, email, passwordHash } = req.body;
+      const { firstName, lastName, email, password } = req.body;
+      if (!firstName || !lastName || !email || !password) {
+        return res.status(400).json({
+          errors: [
+            'Body Request should contain "firstName", "lastName", "email", "password',
+          ],
+        });
+      }
 
       const user = await prisma.user.findFirst({
         where: {
@@ -22,23 +29,29 @@ const routes = {
           firstName,
           lastName,
           email,
-          passwordHash,
+          passwordHash: password,
         },
       });
 
       return res.json({
+        id: novoUser.id,
         firstName: novoUser.firstName,
         lastName: novoUser.lastName,
         email: novoUser.email,
+        role: novoUser.role,
       });
     } catch (error) {
-      return res.status(400).json({ errors: [error.message] });
+      return res
+        .status(500)
+        .json({
+          errors: ["Unexpected error has occurred. Please, try again."],
+        });
     }
   },
   index: async (req, res) => {
     try {
       if (req.userRole !== "ADMIN") {
-        return res.status(403).json({ error: ["Access Forbidden"] });
+        return res.status(401).json({ error: ["Unauthorized"] });
       }
 
       const user = await prisma.user.findMany({
@@ -55,7 +68,9 @@ const routes = {
 
       return res.json(user);
     } catch (error) {
-      return res.status(400).json({ error: [error.message] });
+      return res
+        .status(500)
+        .json({ error: ["Unexpected error has occurred. Please, try again."] });
     }
   },
   update: async (req, res) => {
@@ -113,8 +128,8 @@ const routes = {
 
       return res.json(user);
     } catch (error) {
-      return res.status(400).json({
-        error: ["Something went wrong. Please verify if the data is correct."],
+      return res.status(500).json({
+        error: ["Unexpected error has occurred. Please, try again."],
       });
     }
   },
