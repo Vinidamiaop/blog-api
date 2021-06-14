@@ -116,11 +116,6 @@ const routes = {
           profile: true,
           picture: true,
           images: true,
-          posts: {
-            orderBy: {
-              createdAt: "desc",
-            },
-          },
         },
       });
 

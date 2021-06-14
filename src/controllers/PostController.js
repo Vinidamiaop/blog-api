@@ -54,9 +54,14 @@ const routes = {
           AND: [
             { published: true },
             {
-              OR: [
-                { title: { contains: req.query.search } },
-                { content: { contains: req.query.search } },
+              AND: [
+                {
+                  OR: [
+                    { title: { contains: req.query.search } },
+                    { content: { contains: req.query.search } },
+                  ],
+                },
+                { author: { firstName: { contains: req.query.author } } },
               ],
             },
           ],
@@ -86,7 +91,7 @@ const routes = {
       return res.json(posts);
     } catch (error) {
       return res.status(500).json({
-        errors: ["Unexpected error has occurred. Please, try again."],
+        errors: [error.message],
       });
     }
   },
@@ -184,11 +189,9 @@ const routes = {
       });
       return res.json(post);
     } catch (error) {
-      return res
-        .status(400)
-        .json({
-          errors: ["Unexpected error has occurred. Please, try again."],
-        });
+      return res.status(400).json({
+        errors: ["Unexpected error has occurred. Please, try again."],
+      });
     }
   },
 };
