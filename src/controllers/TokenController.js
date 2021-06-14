@@ -9,25 +9,27 @@ const passwordIsValid = (password, passwordHash) => {
   return result;
 };
 
-const rotas = {
+const routes = {
   async store(req, res) {
     try {
       const { email = "", password = "" } = req.body;
       if (!email || !password) {
-        throw new Error("Email and Password are required.");
+        return res
+          .status(400)
+          .json({ errors: ["Email and Password required."] });
       }
 
-      const user = await prisma.user.findFirst({
+      const user = await prisma.user.findUnique({
         where: { email },
       });
 
       if (!user) {
-        throw new Error("User do not exist.");
+        return res.status(404).json({ errors: ["User not found."] });
       }
 
       const validate = await passwordIsValid(password, user.passwordHash);
       if (!validate) {
-        throw new Error("Invalid credentials");
+        return res.status(401).json({ errors: ["Unauthorized"] });
       }
       const { id } = user;
 
@@ -35,11 +37,13 @@ const rotas = {
         expiresIn: process.env.TOKEN_EXPIRATION,
       });
 
-      res.json({ token });
+      return res.json({ token });
     } catch (error) {
-      res.status(400).json({ errors: [error.message] });
+      return res.status(500).json({
+        errors: ["Unexpected error has occurred. Please, try again."],
+      });
     }
   },
 };
 
-export default rotas;
+export default routes;

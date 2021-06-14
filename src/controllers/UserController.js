@@ -9,7 +9,7 @@ const routes = {
       if (!firstName || !lastName || !email || !password) {
         return res.status(400).json({
           errors: [
-            'Body Request should contain "firstName", "lastName", "email", "password',
+            'Payload should contain "firstName", "lastName", "email", "password',
           ],
         });
       }
@@ -41,11 +41,9 @@ const routes = {
         role: novoUser.role,
       });
     } catch (error) {
-      return res
-        .status(500)
-        .json({
-          errors: ["Unexpected error has occurred. Please, try again."],
-        });
+      return res.status(500).json({
+        errors: ["Unexpected error has occurred. Please, try again."],
+      });
     }
   },
   index: async (req, res) => {
