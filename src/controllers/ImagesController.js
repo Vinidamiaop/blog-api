@@ -12,10 +12,10 @@ const routes = {
     return upload(req, res, async (error) => {
       try {
         if (error) {
-          throw new Error(error.code);
+          return res.status(400).json(error.code);
         }
 
-        const picture = await prisma.images.create({
+        const image = await prisma.images.create({
           data: {
             title: req.body.title,
             description: req.body.description,
@@ -26,9 +26,11 @@ const routes = {
           },
         });
 
-        return res.json(picture);
+        return res.json(image);
       } catch (err) {
-        return res.status(400).json({ errors: [err] });
+        return res.status(500).json({
+          errors: ["Unexpected error has occurred. Please, try again."],
+        });
       }
     });
   },
@@ -50,16 +52,18 @@ const routes = {
 
       return res.json(images);
     } catch (err) {
-      return res.status(400).json({ errors: ["Something went wrong"] });
+      return res.status(500).json({
+        errors: ["Unexpected error has occurred. Please, try again."],
+      });
     }
   },
   show: async (req, res) => {
     try {
       if (!req.params.id) {
-        return res.status(400).json({ errors: ["Id must be sent."] });
+        return res.status(400).json({ errors: ["image Id is required."] });
       }
 
-      const image = await prisma.images.findFirst({
+      const image = await prisma.images.findUnique({
         where: { id: Number(req.params.id) },
       });
 
@@ -69,7 +73,47 @@ const routes = {
 
       return res.json(image);
     } catch (err) {
-      return res.status(400).json({ errors: ["Something went wrong"] });
+      return res.status(500).json({
+        errors: ["Unexpected error has occurred. Please, try again."],
+      });
+    }
+  },
+  update: async (req, res) => {
+    try {
+      if (!req.params.id) {
+        return res.status(400).json({ errors: ["Id is required."] });
+      }
+
+      if (!req.body.title && !req.body.description) {
+        return res
+          .status(400)
+          .json({ errors: ["Image title or description are required."] });
+      }
+
+      const findPost = await prisma.images.findUnique({
+        where: { id: Number(req.params.id) },
+      });
+
+      if (!findPost) {
+        return res.status(404).json({ errors: ["Image not found."] });
+      }
+
+      if (req.userRole !== "ADMIN" || findPost.authorId !== req.userId) {
+        return res.status(401).json({ errors: ["Unauthorized."] });
+      }
+      const image = await prisma.images.update({
+        where: { id: Number(req.params.id) },
+        data: {
+          title: req.body.title,
+          description: req.body.description,
+        },
+      });
+
+      return res.json(image);
+    } catch (error) {
+      return res.json({
+        errors: ["Unexpected error has occurred. Please, try again."],
+      });
     }
   },
   delete: async (req, res) => {
@@ -78,16 +122,16 @@ const routes = {
         return res.status(400).json({ errors: ["Id must be sent."] });
       }
 
-      const findPost = await prisma.images.findFirst({
+      const findPost = await prisma.images.findUnique({
         where: { id: Number(req.params.id) },
       });
 
       if (!findPost) {
-        return res.status(404).json({ errors: ["Image do not exists."] });
+        return res.status(404).json({ errors: ["Image not found."] });
       }
 
       if (req.userRole !== "ADMIN" || findPost.authorId !== req.userId) {
-        return res.status(403).json({ errors: ["Access Forbbiden"] });
+        return res.status(401).json({ errors: ["Unauthorized."] });
       }
       const picture = await prisma.images.delete({
         where: { id: Number(req.params.id) },
@@ -106,7 +150,9 @@ const routes = {
 
       return res.json(picture);
     } catch (error) {
-      return res.json({ errors: [error] });
+      return res.json({
+        errors: ["Unexpected error has occurred. Please, try again."],
+      });
     }
   },
 };
