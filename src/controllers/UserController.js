@@ -43,10 +43,13 @@ const routes = {
 
       const user = await prisma.user.findMany({
         select: {
+          id: true,
           firstName: true,
           lastName: true,
           email: true,
           role: true,
+          profile: true,
+          picture: true,
         },
       });
 
@@ -91,40 +94,16 @@ const routes = {
         where: {
           id: Number(req.userId),
         },
-        include: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
           profile: true,
           picture: true,
-          images: {
-            select: {
-              title: true,
-              filename: true,
-              url: true,
-            },
-            orderBy: { createdAt: "desc" },
-          },
-          userComments: {
-            select: {
-              id: true,
-              content: true,
-              published: true,
-              updatedAt: true,
-              postId: true,
-            },
-            orderBy: { createdAt: "desc" },
-          },
+          images: true,
           posts: {
-            select: {
-              title: true,
-              metaTitle: true,
-              content: true,
-              comments: true,
-              postMeta: true,
-              published: true,
-              tag: true,
-              category: true,
-              createdAt: true,
-              updatedAt: true,
-            },
             orderBy: {
               createdAt: "desc",
             },
@@ -132,31 +111,7 @@ const routes = {
         },
       });
 
-      const {
-        id,
-        firstName,
-        lastName,
-        email,
-        role,
-        images,
-        userComments,
-        posts,
-        profile,
-        picture,
-      } = user;
-
-      return res.json({
-        id,
-        firstName,
-        lastName,
-        email,
-        role,
-        profile,
-        picture,
-        images,
-        userComments,
-        posts,
-      });
+      return res.json(user);
     } catch (error) {
       return res.status(400).json({
         error: ["Something went wrong. Please verify if the data is correct."],

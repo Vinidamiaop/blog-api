@@ -112,7 +112,7 @@ model Tag {
   postTag PostTag[]
 }
 
-model PostTag {
+model PostTag {  
   post Post? @relation(fields: [postId], references: [id])
   postId Int
   tag Tag? @relation(fields: [tagId], references: [id])

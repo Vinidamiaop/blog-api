@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import tagCatCreator from "../helper/tagCatCreator";
 
 const prisma = new PrismaClient();
 
@@ -26,30 +25,6 @@ const routes = {
           published: req.body.published,
         },
       });
-
-      if (req.body.tagId || req.body.tagTitle) {
-        // tagCatCreator is a helper to create a new tag or category
-        await tagCatCreator("tag", {
-          title: req.body.tagTitle,
-          metaTitle: req.body.tagMetaTitle,
-          slug: req.body.tagSlug,
-          content: req.body.tagContent,
-          typeId: req.body.tagId || null,
-          postId: post.id,
-        });
-      }
-
-      if (req.body.categoryId || req.body.categoryTitle) {
-        // tagCatCreator is a helper to create a new tag or category
-        await tagCatCreator("category", {
-          title: req.body.categoryTitle,
-          metaTitle: req.body.categoryMetaTitle,
-          slug: req.body.categorySlug,
-          content: req.body.categoryContent,
-          typeId: req.body.categoryId || null,
-          postId: post.id,
-        });
-      }
 
       return res.json(post);
     } catch (error) {
