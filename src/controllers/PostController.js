@@ -49,6 +49,9 @@ const routes = {
   },
   index: async (req, res) => {
     try {
+      if (req.query.sort !== "asc" && req.query.sort !== "desc") {
+        req.query.sort = "desc";
+      }
       const numberTake = Number(req.query.total) || 6;
       const posts = await prisma.post.findMany({
         skip: Number(req.query.page) * numberTake || 0,
@@ -92,7 +95,7 @@ const routes = {
             orderBy: { createdAt: "desc" },
           },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: req.query.sort || "desc" },
       });
 
       return res.json(posts);
