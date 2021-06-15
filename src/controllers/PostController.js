@@ -43,13 +43,16 @@ const routes = {
       return res.json(post);
     } catch (error) {
       return res.status(500).json({
-        errors: ["Unexpected error has occurred. Please, try again."],
+        errors: [error.message],
       });
     }
   },
   index: async (req, res) => {
     try {
+      const numberTake = Number(req.query.total) || 6;
       const posts = await prisma.post.findMany({
+        skip: Number(req.query.page) * numberTake || 0,
+        take: Number(req.query.total) || 20,
         where: {
           AND: [
             { published: true },
@@ -59,6 +62,7 @@ const routes = {
                   OR: [
                     { title: { contains: req.query.search } },
                     { content: { contains: req.query.search } },
+                    { description: { contains: req.query.search } },
                   ],
                 },
                 { author: { firstName: { contains: req.query.author } } },
@@ -67,6 +71,9 @@ const routes = {
           ],
         },
         include: {
+          author: {
+            select: { firstName: true, lastName: true },
+          },
           postMeta: true,
           postTags: {
             include: { tag: true },
@@ -91,7 +98,7 @@ const routes = {
       return res.json(posts);
     } catch (error) {
       return res.status(500).json({
-        errors: [error.message],
+        errors: ["Unexpected error has occurred. Please, try again."],
       });
     }
   },

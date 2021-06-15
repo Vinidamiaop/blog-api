@@ -60,7 +60,7 @@ model Post {
   comments PostComment[]
   postTags PostTag[]
   postCategory PostCategory[]  
-  content String?
+  content String? @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   published Boolean @default(false)
@@ -93,7 +93,7 @@ model PostMeta {
 
 model PostComment {
   id Int @default(autoincrement()) @id  
-  content String
+  content String @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   published Boolean @default(false)
