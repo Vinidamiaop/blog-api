@@ -204,6 +204,16 @@ const routes = {
       });
     }
   },
+  count: async (req, res) => {
+    try {
+      const count = await prisma.post.count({ where: { published: true } });
+      return res.json(count);
+    } catch (error) {
+      return res.status(400).json({
+        errors: ["Unexpected error has occurred. Please, try again."],
+      });
+    }
+  },
 };
 
 export default routes;
