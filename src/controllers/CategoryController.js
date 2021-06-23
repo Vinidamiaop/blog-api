@@ -38,7 +38,16 @@ const routes = {
   },
   index: async (req, res) => {
     try {
-      const categories = await prisma.category.findMany();
+      const categories = await prisma.category.findMany({
+        where: {
+          AND: [
+            {
+              slug: { equals: req.query.slug }
+            }
+          ]
+        },
+        orderBy: { title: 'asc' }
+      });
       return res.json(categories);
     } catch (error) {
       return res.status(500).json({

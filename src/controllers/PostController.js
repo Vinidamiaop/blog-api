@@ -69,6 +69,7 @@ const routes = {
                   ],
                 },
                 { author: { firstName: { contains: req.query.author } } },
+                { slug: { equals: req.query.slug } },
               ],
             },
           ],
@@ -82,7 +83,7 @@ const routes = {
             include: { tag: true },
           },
           postCategory: {
-            include: { category: true },
+            select: { category: true },
           },
           comments: {
             select: {
@@ -97,41 +98,6 @@ const routes = {
         },
         orderBy: { createdAt: req.query.sort || "desc" },
       });
-
-      return res.json(posts);
-    } catch (error) {
-      return res.status(500).json({
-        errors: ["Unexpected error has occurred. Please, try again."],
-      });
-    }
-  },
-  show: async (req, res) => {
-    try {
-      const posts = await prisma.post.findUnique({
-        where: { slug: req.params.slug },
-        include: {
-          postMeta: true,
-          postTags: {
-            select: {
-              tag: true,
-            },
-          },
-          comments: {
-            select: {
-              id: true,
-              content: true,
-              published: true,
-              updatedAt: true,
-              postId: true,
-            },
-            orderBy: { createdAt: "desc" },
-          },
-        },
-      });
-
-      if (!posts) {
-        return res.status(404).json({ errors: ["Page not found."] });
-      }
 
       return res.json(posts);
     } catch (error) {
@@ -209,11 +175,43 @@ const routes = {
       const count = await prisma.post.count({ where: { published: true } });
       return res.json(count);
     } catch (error) {
-      return res.status(400).json({
+      return res.status(500).json({
         errors: ["Unexpected error has occurred. Please, try again."],
       });
     }
   },
+  findCategory: async (req, res) => {
+    try {
+      const postCategory = await prisma.postCategory.findMany({
+        where: {
+          category: { slug: { equals: req.query.category } }
+        },
+        include: {
+          post: true
+        }
+
+      })
+      return res.json(postCategory)
+    } catch (error) {
+      return res.status(500).json(error.message)
+    }
+  },
+  findTag: async (req, res) => {
+    try {
+      const postTag = await prisma.postTag.findMany({
+        where: {
+          tag: { slug: { equals: req.query.tag } }
+        },
+        include: {
+          post: true
+        }
+
+      })
+      return res.json(postTag)
+    } catch (error) {
+      return res.status(500).json(error.message)
+    }
+  }
 };
 
 export default routes;

@@ -3,6 +3,7 @@ import path from "path";
 import { unlink } from "fs/promises";
 import multer from "multer";
 import multerConfig from "../config/multerConfig";
+import imageResize from "../utils/imageResize";
 
 const upload = multer(multerConfig).single("image");
 const prisma = new PrismaClient();
@@ -15,6 +16,7 @@ const routes = {
           return res.status(400).json(error.code);
         }
 
+
         const image = await prisma.images.create({
           data: {
             title: req.body.title,
@@ -25,6 +27,15 @@ const routes = {
             authorId: req.userId,
           },
         });
+
+        imageResize({
+          file: image.url,
+          filename: image.filename,
+          imageSize: {
+            small: 300,
+            avg: 600
+          }
+        })
 
         return res.json(image);
       } catch (err) {
