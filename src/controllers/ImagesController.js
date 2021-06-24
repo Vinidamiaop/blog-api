@@ -1,9 +1,8 @@
 import { PrismaClient } from "@prisma/client";
-import path from "path";
-import { unlink } from "fs/promises";
 import multer from "multer";
 import multerConfig from "../config/multerConfig";
 import imageResize from "../utils/imageResize";
+import deleteImages from "../utils/deleteImages";
 
 const upload = multer(multerConfig).single("image");
 const prisma = new PrismaClient();
@@ -23,13 +22,20 @@ const routes = {
             description: req.body.description,
             originalname: req.file.originalname,
             filename: req.file.filename,
-            url: `${process.env.APP_URL}/images/${req.file.filename}`,
+            url: {
+              create: {
+                original: `${process.env.APP_URL}/images/${req.file.filename}`,
+                avg: `${process.env.APP_URL}/images/avg-${req.file.filename}`,
+                small: `${process.env.APP_URL}/images/small-${req.file.filename}`,
+              }
+            },
             authorId: req.userId,
           },
         });
 
+
         imageResize({
-          file: image.url,
+          file: `${process.env.APP_URL}/images/${image.filename}`,
           filename: image.filename,
           imageSize: {
             small: 300,
@@ -37,7 +43,13 @@ const routes = {
           }
         })
 
-        return res.json(image);
+        return res.json({
+          title: image.title,
+          description: image.description,
+          originalname: image.originalname,
+          filename: image.filename,
+          url: image.url,
+        });
       } catch (err) {
         return res.status(500).json({
           errors: ["Unexpected error has occurred. Please, try again."],
@@ -144,25 +156,18 @@ const routes = {
       if (req.userRole !== "ADMIN" || findPost.authorId !== req.userId) {
         return res.status(401).json({ errors: ["Unauthorized."] });
       }
+
       const picture = await prisma.images.delete({
         where: { id: Number(req.params.id) },
+
       });
 
-      await unlink(
-        path.resolve(
-          __dirname,
-          "..",
-          "..",
-          "uploads",
-          "images",
-          picture.filename
-        )
-      );
+      await deleteImages(picture.filename);
 
       return res.json(picture);
     } catch (error) {
       return res.json({
-        errors: ["Unexpected error has occurred. Please, try again."],
+        errors: [error.message],
       });
     }
   },

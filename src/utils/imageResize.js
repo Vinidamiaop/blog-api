@@ -8,7 +8,7 @@ export default async function imageResize(config) {
     Object.entries(config.imageSize).forEach((item) => {
       image.resize(item[1], Jimp.AUTO);
       image.quality(100);
-      image.write(`${fileDir}/(${item[0]})${config.filename}.jpg`)
+      image.write(`${fileDir}/${item[0]}-${config.filename}`)
     })
     return image
   } catch (error) {
